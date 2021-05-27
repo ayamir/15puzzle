@@ -312,7 +312,7 @@ def get_methods(sequence: list) -> list:
 
 if __name__ == "__main__":
     # Use 0 as blank
-    init = [2, 5, 3, 4, 9, 1, 6, 8, 14, 13, 7, 11, 0, 10, 15, 12]
+    init = [2, 5, 3, 4, 9, 1, 6, 8, 14, 13, 7, 11, 10, 15, 12, 0]
     goal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
     print(init)
     paths = a_star(Grid(init))
