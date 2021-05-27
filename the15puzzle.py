@@ -55,14 +55,6 @@ class Tile(object):
 
 
 def gui(action_sequence: list, num_list: list):
-    def count_inversions(num_order):
-        inversions = 0
-        for i in range(len(num_order) - 1):
-            for k in range(i + 1, len(num_order)):
-                if num_order[i] > num_order[k]:
-                    inversions += 1
-        return inversions
-
     def moves_display(my_text):
         txt = font.render(my_text, True, WHITE)
         textRect = txt.get_rect(center=(299, 550))
@@ -74,9 +66,6 @@ def gui(action_sequence: list, num_list: list):
         screen.blit(txt, textRect)
         pygame.display.update()
         print("\nYou solved it! Game window closing in 10 seconds....")
-
-    while count_inversions(num_list) % 2 != 0:
-        random.shuffle(num_list)
 
     listOfTiles = []
     move_counter = 0
@@ -130,150 +119,204 @@ def gui(action_sequence: list, num_list: list):
     time.sleep(3)
 
 
-class Grid:
-    def __init__(self, g: int, num_list: list[int]):
-        self.nums = num_list
-        self.g = g
-        self.h = manhattan(self.nums)
+class Grid(object):
+    def __init__(self, nums: list):
+        self.nums = nums
+        self.parent = None
+        self.G = 0
+        self.H = 0
+
+    def __hash__(self):
+        return hash((tuple(self.nums), self.parent, self.G, self.H))
+
+    def __eq__(self, other):
+        return self.nums == other.nums
 
     def blank(self) -> int:
         return self.nums.index(0) + 1
 
-    def direction(self) -> int:
-        directions = 0
-        if self.blank() == 1:
-            directions = LEFT + UP
-        elif 1 < self.blank() < 4:
-            directions = LEFT + RIGHT + UP
-        elif self.blank() == 4:
-            directions = RIGHT + UP
-        elif self.blank() == 5 or self.blank() == 9:
-            directions = UP + DOWN + LEFT
-        elif 5 < self.blank() < 8 or 9 < self.blank() < 12:
-            directions = UP + DOWN + LEFT + RIGHT
-        elif self.blank() == 8 or self.blank() == 12:
-            directions = UP + DOWN + RIGHT
-        elif self.blank() == 13:
-            directions = DOWN + LEFT
-        elif self.blank() == 16:
-            directions = DOWN + RIGHT
-        elif 13 < self.blank() < 16:
-            directions = LEFT + RIGHT + DOWN
-        return directions
-
     def up(self):
-        new_nums = self.nums.copy()
+        tmp_nums = self.nums.copy()
         old_blank = self.blank() - 1
-        new_nums[old_blank] = new_nums[old_blank + 4]
-        new_nums[old_blank + 4] = 0
-        return Grid(0, new_nums)
+        tmp_nums[old_blank] = tmp_nums[old_blank + 4]
+        tmp_nums[old_blank + 4] = 0
+        return Grid(tmp_nums)
 
     def down(self):
-        new_nums = self.nums.copy()
+        tmp_nums = self.nums.copy()
         old_blank = self.blank() - 1
-        new_nums[old_blank] = new_nums[old_blank - 4]
-        new_nums[old_blank - 4] = 0
-        return Grid(0, new_nums)
+        tmp_nums[old_blank] = tmp_nums[old_blank - 4]
+        tmp_nums[old_blank - 4] = 0
+        return Grid(tmp_nums)
 
     def left(self):
-        new_nums = self.nums.copy()
+        tmp_nums = self.nums.copy()
         old_blank = self.blank() - 1
-        new_nums[old_blank] = new_nums[old_blank - 1]
-        new_nums[old_blank - 1] = 0
-        return Grid(0, new_nums)
+        tmp_nums[old_blank] = tmp_nums[old_blank + 1]
+        tmp_nums[old_blank + 1] = 0
+        return Grid(tmp_nums)
 
     def right(self):
-        new_nums = self.nums.copy()
+        tmp_nums = self.nums.copy()
         old_blank = self.blank() - 1
-        new_nums[old_blank] = new_nums[old_blank + 1]
-        new_nums[old_blank + 1] = 0
-        return Grid(0, new_nums)
+        tmp_nums[old_blank] = tmp_nums[old_blank - 1]
+        tmp_nums[old_blank - 1] = 0
+        return Grid(tmp_nums)
+
+    def directions(self) -> int:
+        if self.blank() == 1:
+            return LEFT + UP
+        elif 1 < self.blank() < 4:
+            return LEFT + RIGHT + UP
+        elif self.blank() == 4:
+            return RIGHT + UP
+        elif self.blank() == 5 or self.blank() == 9:
+            return UP + DOWN + LEFT
+        elif 5 < self.blank() < 8 or 9 < self.blank() < 12:
+            return UP + DOWN + LEFT + RIGHT
+        elif self.blank() == 8 or self.blank() == 12:
+            return UP + DOWN + RIGHT
+        elif self.blank() == 13:
+            return DOWN + LEFT
+        elif 13 < self.blank() < 16:
+            return LEFT + RIGHT + DOWN
+        elif self.blank() == 16:
+            return DOWN + RIGHT
 
     def children(self) -> list:
-        children = []
-        directions = self.direction()
+        res = []
+        directions = self.directions()
         if directions == UP + LEFT:
-            children.append((self.up(), UP))
-            children.append((self.left(), LEFT))
+            res.append(self.up())
+            res.append(self.left())
         elif directions == UP + LEFT + RIGHT:
-            children.append((self.left(), LEFT))
-            children.append((self.right(), RIGHT))
-            children.append((self.up(), UP))
+            res.append(self.up())
+            res.append(self.left())
+            res.append(self.right())
         elif directions == UP + RIGHT:
-            children.append((self.up(), UP))
-            children.append((self.right(), RIGHT))
+            res.append(self.up())
+            res.append(self.right())
         elif directions == UP + DOWN + LEFT:
-            children.append((self.up(), UP))
-            children.append((self.down(), DOWN))
-            children.append((self.left(), LEFT))
+            res.append(self.up())
+            res.append(self.down())
+            res.append(self.left())
         elif directions == UP + DOWN + RIGHT:
-            children.append((self.up(), UP))
-            children.append((self.down(), DOWN))
-            children.append((self.right(), RIGHT))
+            res.append(self.up())
+            res.append(self.down())
+            res.append(self.right())
         elif directions == UP + DOWN + LEFT + RIGHT:
-            children.append((self.up(), UP))
-            children.append((self.down(), DOWN))
-            children.append((self.left(), LEFT))
-            children.append((self.right(), RIGHT))
+            res.append(self.up())
+            res.append(self.down())
+            res.append(self.left())
+            res.append(self.right())
         elif directions == DOWN + LEFT:
-            children.append((self.down(), DOWN))
-            children.append((self.left(), LEFT))
+            res.append(self.down())
+            res.append(self.left())
         elif directions == DOWN + LEFT + RIGHT:
-            children.append((self.down(), DOWN))
-            children.append((self.left(), LEFT))
-            children.append((self.right(), RIGHT))
+            res.append(self.down())
+            res.append(self.left())
+            res.append(self.right())
         elif directions == DOWN + RIGHT:
-            children.append((self.down(), DOWN))
-            children.append((self.right(), RIGHT))
-        return children
+            res.append(self.down())
+            res.append(self.right())
+        return res
 
 
-def manhattan(num_list: list[int]) -> int:
-    h = 0
+def manhattan(nums: list) -> int:
+    H = 0
     for value in range(1, 16):
         _x = value // 4
         _y = value % 4
-        index = num_list.index(value) + 1
+        index = nums.index(value) + 1
         x = index // 4
         y = index % 4
-        h += abs(_x - x) + abs(_y - y)
-    return h
+        H += abs(_x - x) + abs(_y - y)
+    return H
+
+
+def get_inv_count(a: list) -> int:
+    inv_count = 0
+    removed = a.copy()
+    removed.remove(0)
+    n = len(removed)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if removed[i] > removed[j]:
+                inv_count += 1
+    return inv_count
+
+
+def count_inversions(num_order):
+    inversions = 0
+    for i in range(len(num_order) - 1):
+        for k in range(i + 1, len(num_order)):
+            if num_order[i] > num_order[k]:
+                inversions += 1
+    return inversions
+
+
+def a_star(grid: Grid) -> list:
+    open_set = set()
+    close_set = set()
+    open_set.add(grid)
+    while open_set:
+        current = min(open_set, key=lambda k: k.G + k.H)
+        current_nums = current.nums
+        if current_nums == goal:
+            path = []
+            while current.parent:
+                path.append(current)
+                current = current.parent
+            path.append(current)
+            return path[::-1]
+        open_set.remove(current)
+        close_set.add(current)
+        for node in current.children():
+            if node in close_set:
+                continue
+            if node in open_set:
+                new_g = current.G + 1
+                if node.G > new_g:
+                    node.G = new_g
+                    node.parent = current
+            else:
+                node.G = current.G + 1
+                node.H = manhattan(node.nums)
+                node.parent = current
+                open_set.add(node)
+
+
+def get_action(a: list, b: list) -> int:
+    offset = b.index(0) - a.index(0)
+    if offset == 1:
+        return LEFT
+    elif offset == -1:
+        return RIGHT
+    elif offset == 4:
+        return UP
+    elif offset == -4:
+        return DOWN
+    else:
+        return 0
+
+
+def get_methods(sequence: list) -> list:
+    methods = []
+    for i, v in enumerate(sequence):
+        if i == len(sequence) - 1:
+            break
+        methods.append(get_action(v.nums, sequence[i + 1].nums))
+    return methods
 
 
 if __name__ == "__main__":
-    methods = []
     # Use 0 as blank
-    init = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 13, 14, 15, 12]
-    nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
-    goal = nums.copy()
-    random.shuffle(nums)
-    initial_grid = Grid(0, init)
-    # open_dict and close_dict contain like this: (Grid, UP)
-    open_dict = {}
-    close_dict = {}
-    open_dict[initial_grid] = 0
-
-    while open_dict:
-        current = min(open_dict.keys(), key=lambda k: k.g + k.h)
-        method = open_dict.get(current)
-        if method != 0:
-            methods.append(method)
-        if current.nums == goal:
-            break
-        open_dict.pop(current)
-        close_dict[current] = method
-        for node_tuple in current.children():
-            node = node_tuple[0]
-            direction = node_tuple[1]
-            if node in close_dict:
-                continue
-            if node in open_dict:
-                new_g = current.g + 1
-                if new_g < node.g:
-                    node.g = new_g
-                    open_dict[node] = direction
-            else:
-                node.g = current.g + 1
-                open_dict[node] = direction
-
-    gui(methods, init)
+    init = [2, 5, 3, 4, 1, 0, 6, 8, 9, 13, 7, 11, 14, 10, 15, 12]
+    random.shuffle(init)
+    goal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
+    while not count_inversions(init) % 2 != 0:
+        random.shuffle(init)
+    else:
+        print(init)
+        paths = a_star(Grid(init))
+        gui(get_methods(paths), init)
