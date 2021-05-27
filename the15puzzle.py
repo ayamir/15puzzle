@@ -102,7 +102,8 @@ def gui(action_sequence: list, num_list: list):
             xy_dist = [0, 100]
 
         for tile in listOfTiles:
-            if tile.x + xy_dist[0] == empty_x and tile.y + xy_dist[1] == empty_y:
+            if tile.x + xy_dist[0] == empty_x and tile.y + xy_dist[
+                    1] == empty_y:
                 move_counter += 1
                 empty_x = tile.x
                 empty_y = tile.y
@@ -311,11 +312,8 @@ def get_methods(sequence: list) -> list:
 
 if __name__ == "__main__":
     # Use 0 as blank
-    init = [2, 5, 3, 4, 1, 0, 6, 8, 9, 13, 7, 11, 14, 10, 15, 12]
+    init = [2, 5, 3, 4, 9, 1, 6, 8, 14, 13, 7, 11, 0, 10, 15, 12]
     goal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
-    while not count_inversions(init) % 2 != 0:
-        random.shuffle(init)
-    else:
-        print(init)
-        paths = a_star(Grid(init))
-        gui(get_methods(paths), init)
+    print(init)
+    paths = a_star(Grid(init))
+    gui(get_methods(paths), init)
