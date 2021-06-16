@@ -38,14 +38,14 @@ class Tile(object):
                                          (2 * self.y + self.height) / 2))
         screen.blit(text, textRect)
 
-    def move_it(self, dist):
-        final_x = self.x + dist[0]
-        final_y = self.y + dist[1]
+    def move_it(self, dest):
+        final_x = self.x + dest[0]
+        final_y = self.y + dest[1]
 
         while self.x != final_x or self.y != final_y:
             screen.fill(WHITE, [self.x, self.y, 99, 99])
-            self.x += int(dist[0] / 50)
-            self.y += int(dist[1] / 50)
+            self.x += int(dest[0] / 50)
+            self.y += int(dest[1] / 50)
             self.draw()
             pygame.display.update()
 
