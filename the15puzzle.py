@@ -19,7 +19,7 @@ pygame.mixer.init()
 screen = pygame.display.set_mode((598, 598))
 screen.fill((0, 0, 0))
 pygame.display.set_caption("Arrange the Numbers!")
-font = pygame.font.Font('fonts/Adca.ttf', 35)
+font = pygame.font.Font('fonts/RobotoMono-Bold.ttf', 35)
 clock = pygame.time.Clock()
 victory = pygame.mixer.Sound("sounds/TaDa.ogg")
 
@@ -54,18 +54,17 @@ class Tile(object):
         clock.tick(60)
 
 
-def gui(action_sequence: list, num_list: list):
+def gui(action_sequence: list, num_list: list, elapsed_time: float):
     def moves_display(my_text):
         txt = font.render(my_text, True, WHITE)
         textRect = txt.get_rect(center=(299, 550))
         screen.blit(txt, textRect)
 
     def show_congrats():
-        txt = font.render("Congratulations! You did it!", True, GREEN)
+        txt = font.render("Solved in " + str(elapsed_time) + "seconds", True, GREEN)
         textRect = txt.get_rect(center=(299, 49))
         screen.blit(txt, textRect)
         pygame.display.update()
-        print("\nYou solved it! Game window closing in 10 seconds....")
 
     listOfTiles = []
     move_counter = 0
@@ -102,8 +101,8 @@ def gui(action_sequence: list, num_list: list):
             xy_dist = [0, 100]
 
         for tile in listOfTiles:
-            if tile.x + xy_dist[0] == empty_x and tile.y + xy_dist[
-                    1] == empty_y:
+            if tile.x + xy_dist[0] == empty_x and \
+                    tile.y + xy_dist[1] == empty_y:
                 move_counter += 1
                 empty_x = tile.x
                 empty_y = tile.y
@@ -126,15 +125,24 @@ class Grid(object):
         self.parent = None
         self.G = 0
         self.H = 0
+        self.L = 0
 
     def __hash__(self):
-        return hash((tuple(self.nums), self.parent, self.G, self.H))
+        return hash((tuple(self.nums), self.parent, self.G, self.H, self.L))
 
     def __eq__(self, other):
         return self.nums == other.nums
 
     def blank(self) -> int:
         return self.nums.index(0) + 1
+
+    def isSolvable(self) -> bool:
+        inv = cnt_inv(self.nums) - self.blank() + 1
+        x = 4 - self.blank() // 4
+        if (inv % 2) ^ (x % 2) == 1:
+            return True
+        else:
+            return False
 
     def up(self):
         tmp_nums = self.nums.copy()
@@ -165,24 +173,26 @@ class Grid(object):
         return Grid(tmp_nums)
 
     def directions(self) -> int:
+        res = 0
         if self.blank() == 1:
-            return LEFT + UP
+            res = LEFT + UP
         elif 1 < self.blank() < 4:
-            return LEFT + RIGHT + UP
+            res = LEFT + RIGHT + UP
         elif self.blank() == 4:
-            return RIGHT + UP
+            res = RIGHT + UP
         elif self.blank() == 5 or self.blank() == 9:
-            return UP + DOWN + LEFT
+            res = UP + DOWN + LEFT
         elif 5 < self.blank() < 8 or 9 < self.blank() < 12:
-            return UP + DOWN + LEFT + RIGHT
+            res = UP + DOWN + LEFT + RIGHT
         elif self.blank() == 8 or self.blank() == 12:
-            return UP + DOWN + RIGHT
+            res = UP + DOWN + RIGHT
         elif self.blank() == 13:
-            return DOWN + LEFT
+            res = DOWN + LEFT
         elif 13 < self.blank() < 16:
-            return LEFT + RIGHT + DOWN
+            res = LEFT + RIGHT + DOWN
         elif self.blank() == 16:
-            return DOWN + RIGHT
+            res = DOWN + RIGHT
+        return res
 
     def children(self) -> list:
         res = []
@@ -223,6 +233,15 @@ class Grid(object):
         return res
 
 
+def cnt_inv(nums: list) -> int:
+    inv = 0
+    for i in range(len(nums)):
+        for k in range(i + 1, len(nums)):
+            if nums[i] > nums[k]:
+                inv += 1
+    return inv
+
+
 def manhattan(nums: list) -> int:
     H = 0
     for value in range(1, 16):
@@ -235,41 +254,69 @@ def manhattan(nums: list) -> int:
     return H
 
 
-def get_inv_count(a: list) -> int:
-    inv_count = 0
-    removed = a.copy()
-    removed.remove(0)
-    n = len(removed)
-    for i in range(n):
-        for j in range(i + 1, n):
-            if removed[i] > removed[j]:
-                inv_count += 1
-    return inv_count
+def linear_conflicts(candidate, solved):
+    def count_conflicts(candidate_row, solved_row, ans=0):
+        counts = [0 for _ in range(4)]
+        for i, tile_1 in enumerate(candidate_row):
+            if tile_1 in solved_row and tile_1 != 0:
+                for j, tile_2 in enumerate(candidate_row):
+                    if tile_2 in solved_row and tile_2 != 0:
+                        if tile_1 != tile_2:
+                            if (solved_row.index(tile_1) > solved_row.index(tile_2)) and i < j:
+                                counts[i] += 1
+                            if (solved_row.index(tile_1) < solved_row.index(tile_2)) and i > j:
+                                counts[i] += 1
+        if max(counts) == 0:
+            return ans * 2
+        else:
+            i = counts.index(max(counts))
+            candidate_row[i] = -1
+            ans += 1
+            return count_conflicts(candidate_row, solved_row, ans)
+
+    res = manhattan(candidate)
+    candidate_rows = [[] for _ in range(4)]
+    candidate_columns = [[] for _ in range(4)]
+    solved_rows = [[] for _ in range(4)]
+    solved_columns = [[] for _ in range(4)]
+    for y in range(4):
+        for x in range(4):
+            idx = (y * 4) + x
+            candidate_rows[y].append(candidate[idx])
+            candidate_columns[x].append(candidate[idx])
+            solved_rows[y].append(solved[idx])
+            solved_columns[x].append(solved[idx])
+    for i in range(4):
+        res += count_conflicts(candidate_rows[i], solved_rows[i], 4)
+    for i in range(4):
+        res += count_conflicts(candidate_columns[i], solved_columns[i], 4)
+    return res
 
 
-def count_inversions(num_order):
-    inversions = 0
-    for i in range(len(num_order) - 1):
-        for k in range(i + 1, len(num_order)):
-            if num_order[i] > num_order[k]:
-                inversions += 1
-    return inversions
-
-
-def a_star(grid: Grid) -> list:
+def a_star(grid: Grid, solved):
+    start_time = time.process_time()
     open_set = set()
     close_set = set()
     open_set.add(grid)
     while open_set:
-        current = min(open_set, key=lambda k: k.G + k.H)
+        current = min(open_set, key=lambda k: k.G + k.H + 2 * k.L)
         current_nums = current.nums
+        for i in range(4):
+            for j in range(4):
+                print(current_nums[i * 4 + j], end=' ')
+            print()
+        print()
+        current_time = time.process_time()
+        elapsed_time = current_time - start_time
         if current_nums == goal:
             path = []
             while current.parent:
                 path.append(current)
                 current = current.parent
             path.append(current)
-            return path[::-1]
+            return path[::-1], elapsed_time
+        if elapsed_time > 60:
+            return [], elapsed_time
         open_set.remove(current)
         close_set.add(current)
         for node in current.children():
@@ -283,6 +330,7 @@ def a_star(grid: Grid) -> list:
             else:
                 node.G = current.G + 1
                 node.H = manhattan(node.nums)
+                node.L = linear_conflicts(node.nums, solved)
                 node.parent = current
                 open_set.add(node)
 
@@ -312,8 +360,15 @@ def get_methods(sequence: list) -> list:
 
 if __name__ == "__main__":
     # Use 0 as blank
-    init = [2, 5, 3, 4, 9, 1, 6, 8, 14, 13, 7, 11, 10, 15, 12, 0]
+    init = [1, 0, 6, 4, 9, 5, 2, 8, 10, 14, 3, 7, 13, 15, 12, 11]
     goal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
-    print(init)
-    paths = a_star(Grid(init))
-    gui(get_methods(paths), init)
+    start = Grid(init)
+    while not start.isSolvable():
+        random.shuffle(init)
+        start = Grid(init)
+    else:
+        paths, elapsed_time = a_star(start, goal)
+        if paths:
+            gui(get_methods(paths), init, elapsed_time)
+        else:
+            print("elapsed over 60 seconds, program will end.")
