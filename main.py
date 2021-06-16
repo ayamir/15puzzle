@@ -37,7 +37,7 @@ if __name__ == "__main__":
     start = Grid(init)
 
     # if solvable then Astar
-    while not start.isSolvable():
+    while not start.is_solvable():
         random.shuffle(init)
         start = Grid(init)
     else:

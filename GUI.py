@@ -38,7 +38,7 @@ class Tile(object):
                                          (2 * self.y + self.height) / 2))
         screen.blit(text, textRect)
 
-    def moveIt(self, dist):
+    def move_it(self, dist):
         final_x = self.x + dist[0]
         final_y = self.y + dist[1]
 
@@ -105,7 +105,7 @@ def gui(action_sequence: list, num_list: list, elapsed_time: float):
                 move_counter += 1
                 empty_x = tile.x
                 empty_y = tile.y
-                tile.moveIt(xy_dist)
+                tile.move_it(xy_dist)
                 break
 
     screen.fill(BLACK, [200, 515, 200, 85])

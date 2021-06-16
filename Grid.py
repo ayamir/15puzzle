@@ -28,7 +28,7 @@ class Grid(object):
         return self.nums.index(0) + 1
 
     # judge solvable
-    def isSolvable(self) -> bool:
+    def is_solvable(self) -> bool:
         inv = cnt_inv(self.nums) - self.blank() + 1
         x = 4 - self.blank() // 4
         if (inv % 2) ^ (x % 2) == 1:
