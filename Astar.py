@@ -1,48 +1,44 @@
-import time
+from queue import PriorityQueue
 
 from Grid import *
 
+map = {}
 
-def a_star(grid: Grid, goal):
-    start_time = time.process_time()
-    open_set = set()
+
+def a_star(grid: Grid, goal: list):
+    open_set = PriorityQueue()
     close_set = set()
-    open_set.add(grid)
-    while open_set:
-        current = min(open_set, key=lambda k: k.G + k.H + 2 * k.L)
+    open_set.put(grid)
+    while open_set.not_empty:
+        current = open_set.get()
         current_nums = current.nums
-        for i in range(4):
-            for j in range(4):
-                print(current_nums[i * 4 + j], end=' ')
-            print()
-        print()
-        current_time = time.process_time()
-        elapsed_time = current_time - start_time
+
+        # omit existed state
+        if map.__contains__(str(current_nums)):
+            continue
+        map[str(current_nums)] = 1
+
+        # get answer
         if current_nums == goal:
             path = []
             while current.parent:
                 path.append(current)
                 current = current.parent
             path.append(current)
-            return path[::-1], elapsed_time
-        if elapsed_time > 300:
-            return [], elapsed_time
-        open_set.remove(current)
+            return path[::-1]
+
+        # add current grid to close set
         close_set.add(current)
+
+        # iterate all current's children
         for node in current.children():
             if node in close_set:
                 continue
-            if node in open_set:
-                new_g = current.G + 1
-                if node.G > new_g:
-                    node.G = new_g
-                    node.parent = current
-            else:
-                node.G = current.G + 1
-                node.H = manhattan(node.nums)
-                node.L = linear_conflicts(node.nums, goal)
-                node.parent = current
-                open_set.add(node)
+            node.G = current.G + 1
+            node.H = manhattan(node.nums)
+            node.L = 2 * linear_conflicts(node.nums, goal)
+            node.parent = current
+            open_set.put(node)
 
 
 def manhattan(nums: list) -> int:

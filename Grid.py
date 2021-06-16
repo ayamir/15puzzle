@@ -19,12 +19,15 @@ class Grid(object):
     def __eq__(self, other):
         return self.nums == other.nums
 
+    # for PriorityQueue's sort
     def __lt__(self, other):
         return (self.G + self.H + self.L) < (other.G + other.H + other.L)
 
+    # get blank's place
     def blank(self) -> int:
         return self.nums.index(0) + 1
 
+    # judge solvable
     def isSolvable(self) -> bool:
         inv = cnt_inv(self.nums) - self.blank() + 1
         x = 4 - self.blank() // 4

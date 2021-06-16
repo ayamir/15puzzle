@@ -29,16 +29,21 @@ def get_methods(sequence: list) -> list:
 
 if __name__ == "__main__":
     # Use 0 as blank
-    # init = [1, 0, 6, 4, 9, 5, 2, 8, 10, 14, 3, 7, 13, 15, 12, 11]
     init = [13, 2, 10, 3, 1, 12, 8, 4, 5, 0, 9, 6, 15, 14, 11, 7]
     goal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
+
+    # use random to increase difficulty
+    random.shuffle(init)
     start = Grid(init)
+
+    # if solvable then Astar
     while not start.isSolvable():
         random.shuffle(init)
         start = Grid(init)
     else:
-        paths, elapsed_time = a_star(start, goal)
+        print(init)
+        start_time = time.process_time()
+        paths = a_star(start, goal)
+        end_time = time.process_time()
         if paths:
-            gui(get_methods(paths), init, elapsed_time)
-        else:
-            print("elapsed over 5 minutes, program will end.")
+            gui(get_methods(paths), init, end_time - start_time)
