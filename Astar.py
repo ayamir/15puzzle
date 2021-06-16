@@ -7,7 +7,6 @@ map = {}
 
 def a_star(grid: Grid, goal: list):
     open_set = PriorityQueue()
-    close_set = set()
     open_set.put(grid)
     while open_set.not_empty:
         current = open_set.get()
@@ -27,13 +26,8 @@ def a_star(grid: Grid, goal: list):
             path.append(current)
             return path[::-1]
 
-        # add current grid to close set
-        close_set.add(current)
-
         # iterate all current's children
         for node in current.children():
-            if node in close_set:
-                continue
             node.G = current.G + 1
             node.H = manhattan(node.nums)
             node.L = 2 * linear_conflicts(node.nums, goal)
