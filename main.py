@@ -28,12 +28,12 @@ def get_methods(sequence: list) -> list:
 
 
 if __name__ == "__main__":
-    # Use 0 as blank
+    # default state
     init = [13, 2, 10, 3, 1, 12, 8, 4, 5, 0, 9, 6, 15, 14, 11, 7]
     goal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
 
-    # use random to increase difficulty
-    random.shuffle(init)
+    # uncommit this line to increase difficulty
+    # random.shuffle(init)
     start = Grid(init)
 
     # if solvable then Astar
@@ -46,4 +46,4 @@ if __name__ == "__main__":
         paths = a_star(start, goal)
         end_time = time.process_time()
         if paths:
-            gui(get_methods(paths), init, end_time - start_time)
+            gui(get_methods(paths), init, round(end_time - start_time, 4))
