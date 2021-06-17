@@ -33,7 +33,7 @@ if __name__ == "__main__":
     goal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
 
     # uncommit this line to increase difficulty
-    # random.shuffle(init)
+    random.shuffle(init)
     start = Grid(init)
 
     # if solvable then Astar
@@ -45,5 +45,7 @@ if __name__ == "__main__":
         start_time = time.process_time()
         paths = a_star(start, goal)
         end_time = time.process_time()
+        elapsed_time = end_time - start_time
         if paths:
-            gui(get_methods(paths), init, round(end_time - start_time, 4))
+            gui(get_methods(paths), init, round(elapsed_time, 4))
+            print(elapsed_time)
