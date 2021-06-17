@@ -45,7 +45,9 @@ if __name__ == "__main__":
         start_time = time.process_time()
         paths = a_star(start, goal)
         end_time = time.process_time()
-        elapsed_time = end_time - start_time
+        elapsed_time = round(end_time - start_time, 4)
         if paths:
-            gui(get_methods(paths), init, round(elapsed_time, 4))
-            print(elapsed_time)
+            gui(get_methods(paths), init, elapsed_time)
+            # print result to console
+            print("Used " + str(elapsed_time) + " seconds")
+            print("moved " + str(len(paths)) + " steps")
