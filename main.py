@@ -1,19 +1,21 @@
 import random
+import time
 
-from Astar import *
-from GUI import *
+import Astar
+import Grid
+from GUI import gui
 
 
 def get_action(a: list, b: list) -> int:
     offset = b.index(0) - a.index(0)
     if offset == 1:
-        return LEFT
+        return Grid.LEFT
     elif offset == -1:
-        return RIGHT
+        return Grid.RIGHT
     elif offset == 4:
-        return UP
+        return Grid.UP
     elif offset == -4:
-        return DOWN
+        return Grid.DOWN
     else:
         return 0
 
@@ -34,16 +36,16 @@ if __name__ == "__main__":
 
     # uncommit this line to increase difficulty
     random.shuffle(init)
-    start = Grid(init)
+    start = Grid.Grid(init)
 
     # if solvable then Astar
     while not start.is_solvable():
         random.shuffle(init)
-        start = Grid(init)
+        start = Grid.Grid(init)
     else:
         print(init)
         start_time = time.process_time()
-        paths = a_star(start, goal)
+        paths = Astar.a_star(start, goal)
         end_time = time.process_time()
         elapsed_time = round(end_time - start_time, 4)
         if paths:

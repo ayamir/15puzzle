@@ -1,6 +1,6 @@
 from queue import PriorityQueue
 
-from Grid import *
+from Grid import Grid
 
 map = {}
 
@@ -55,13 +55,13 @@ def linear_conflicts(candidate, solved):
                 for j, tile_2 in enumerate(candidate_row):
                     if tile_2 in solved_row and tile_2 != 0:
                         if tile_1 != tile_2:
-                            if (solved_row.index(tile_1) >
-                                solved_row.index(tile_2)) and \
-                                    i < j:
+                            if (
+                                solved_row.index(tile_1) > solved_row.index(tile_2)
+                            ) and i < j:
                                 counts[i] += 1
-                            if (solved_row.index(tile_1) <
-                                solved_row.index(tile_2)) and \
-                                    i > j:
+                            if (
+                                solved_row.index(tile_1) < solved_row.index(tile_2)
+                            ) and i > j:
                                 counts[i] += 1
         if max(counts) == 0:
             return ans * 2
